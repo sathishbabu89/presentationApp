@@ -1,0 +1,36 @@
+Key Changes for Template Selection:
+Template Folder:
+
+We assume that you have a templates/ folder containing .pptx files (your templates) and preview image files (e.g., .png, .jpg) for each template.
+Template Selection:
+
+A radio button (st.radio) is used to allow the user to select one of the templates.
+After selecting a template, the app will display the corresponding preview image using st.image.
+Loading Template:
+
+Based on the user's selection, the corresponding .pptx file is loaded and used to generate the presentation.
+The first slide of the selected template is used as the title slide, and subsequent slides are added to it.
+Progress Bar:
+
+The progress bar is updated in stages, from content generation to chart creation and presentation download.
+How to Use:
+Template Files:
+
+Put your .pptx templates in the templates/ folder.
+Place corresponding preview images (e.g., template1_preview.png) in the same folder.
+Run the Streamlit App:
+
+bash
+Copy code
+streamlit run app.py
+Select Template:
+
+In the app, you will see a list of available templates with a preview image.
+After entering a topic, the app will generate content and generate the presentation based on the selected template.
+Download:
+
+Once the presentation is ready, you can download the PowerPoint file.
+Notes:
+Make sure the .pptx templates you use are compatible with python-pptx and have a consistent structure.
+Ensure that the preview images are correctly named and placed in the folder.
+Let me know if you need more details or further adjustments!
