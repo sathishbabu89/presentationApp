@@ -1,0 +1,9 @@
+streamlit
+langchain
+torch
+matplotlib
+plotly
+python-pptx
+Pillow
+huggingface_hub
+requests
