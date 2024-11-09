@@ -1,0 +1,9 @@
+.
+├── app.py                   # Main Streamlit application
+├── templates                # Folder with PowerPoint templates and images
+│   ├── template1.pptx       # PowerPoint template 1
+│   ├── template2.pptx       # PowerPoint template 2
+│   ├── template1_preview.png # Preview image for template 1
+│   └── template2_preview.png # Preview image for template 2
+├── requirements.txt         # Dependencies
+└── assets                   # Any other static assets you might need (e.g., icons)
