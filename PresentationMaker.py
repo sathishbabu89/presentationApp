@@ -29,9 +29,8 @@ with st.sidebar:
     st.title("Create Your Presentation")
     topic = st.text_input("Enter the Topic of your Presentation:")
 
-    # Option to generate charts for the presentation
-    generate_charts = st.checkbox("Generate Pie Chart for Content")
-    bar_chart = st.checkbox("Generate Bar Chart for Content")
+    # Option to generate charts for the presentation (now a single button to start the generation)
+    generate_charts = st.checkbox("Include charts in the presentation")
 
     # Load templates and display them as options
     templates_folder = "templates/"
@@ -158,7 +157,7 @@ def generate_charts_to_presentation(prs, progress_bar):
         progress_bar.progress(75)
 
     # Generate Bar Chart if selected by the user
-    if bar_chart:
+    if generate_charts:
         fig = px.bar(
             x=['Category A', 'Category B', 'Category C', 'Category D'],
             y=[10, 20, 30, 40],
@@ -180,38 +179,42 @@ def generate_charts_to_presentation(prs, progress_bar):
 
 # Generate content when a topic is provided
 if topic and selected_template_name:
-    # Show progress bar for content generation
-    progress_bar = st.progress(0)
-    
-    st.subheader(f"Generated Content for '{topic}'")
-    with st.spinner("Generating content for the presentation..."):
-        content = generate_presentation_content(topic, progress_bar)
-        st.markdown(content)
+    # Add a "Generate" button to trigger presentation creation
+    generate_button = st.button("Generate Presentation")
 
-    # Load the selected template file
-    template_file_path = os.path.join(templates_folder, f"{selected_template_name}.pptx")
-    
-    # Create a PowerPoint presentation from the selected template
-    prs = create_presentation_from_template(content, topic, template_file_path, progress_bar)
+    if generate_button:
+        # Show progress bar for content generation
+        progress_bar = st.progress(0)
+        
+        st.subheader(f"Generated Content for '{topic}'")
+        with st.spinner("Generating content for the presentation..."):
+            content = generate_presentation_content(topic, progress_bar)
+            st.markdown(content)
 
-    # Generate and add charts if selected by the user
-    prs = generate_charts_to_presentation(prs, progress_bar)
+        # Load the selected template file
+        template_file_path = os.path.join(templates_folder, f"{selected_template_name}.pptx")
+        
+        # Create a PowerPoint presentation from the selected template
+        prs = create_presentation_from_template(content, topic, template_file_path, progress_bar)
 
-    # Save the presentation and create a download link
-    output_file = BytesIO()
-    prs.save(output_file)
-    output_file.seek(0)
+        # Generate and add charts if selected by the user
+        prs = generate_charts_to_presentation(prs, progress_bar)
 
-    # Mark 100% completion after everything is done
-    progress_bar.progress(100)
+        # Save the presentation and create a download link
+        output_file = BytesIO()
+        prs.save(output_file)
+        output_file.seek(0)
 
-    # Provide a download button for the generated PowerPoint file
-    st.download_button(
-        "Download PowerPoint Presentation",
-        data=output_file,
-        file_name="generated_presentation.pptx",
-        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
-    )
+        # Mark 100% completion after everything is done
+        progress_bar.progress(100)
+
+        # Provide a download button for the generated PowerPoint file
+        st.download_button(
+            "Download PowerPoint Presentation",
+            data=output_file,
+            file_name="generated_presentation.pptx",
+            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        )
 
 else:
     st.info("Please enter a topic and select a template to generate the presentation.")
