@@ -138,16 +138,15 @@ def create_presentation_from_template(content, topic, template_file, progress_ba
 
 # Function to generate and add charts to the presentation
 def generate_charts_to_presentation(prs, progress_bar):
+    """Generates charts and adds them to the presentation."""
+    chart_slide_layout_index = 5  # Index for the layout with a title
 
-    chart_slide_layout_index = 5  # The desired layout index for the chart slides
-    
-    # Check if the specified slide layout index is available
+    # Check if the slide layout index exists in the presentation
     if chart_slide_layout_index >= len(prs.slide_layouts):
         logger.warning(f"Slide layout index {chart_slide_layout_index} is out of range. Using the default layout (0) instead.")
-        chart_slide_layout_index = 0  # Fallback to a default layout if the desired layout is unavailable
+        chart_slide_layout_index = 0
 
-    
-    """Generates charts and adds them to the presentation."""
+    # Generate Pie Chart Slide
     if generate_charts:
         fig, ax = plt.subplots(figsize=(5, 3))
         labels = ['Part A', 'Part B', 'Part C', 'Part D']
@@ -161,28 +160,40 @@ def generate_charts_to_presentation(prs, progress_bar):
 
         slide_layout = prs.slide_layouts[chart_slide_layout_index]
         slide = prs.slides.add_slide(slide_layout)
-        slide.shapes.title.text = "Generated Pie Chart"
+        
+        # Check if title placeholder exists
+        if slide.shapes.title is not None:
+            slide.shapes.title.text = "Generated Pie Chart"
+        else:
+            logger.warning("No title placeholder found for the pie chart slide.")
+        
         slide.shapes.add_picture(chart_path, Inches(1), Inches(1), width=Inches(8.5), height=Inches(4.5))
-
         progress_bar.progress(75)
 
+    # Generate Bar Chart Slide
     if bar_chart:
         fig = px.bar(
             x=['Category A', 'Category B', 'Category C', 'Category D'],
             y=[10, 20, 30, 40],
             title="Sample Bar Chart"
         )
-        chart_path = "bar_chart.html"
-        fig.write_html(chart_path)
+        chart_path = "bar_chart.png"
+        fig.write_image(chart_path)
 
         slide_layout = prs.slide_layouts[chart_slide_layout_index]
         slide = prs.slides.add_slide(slide_layout)
-        slide.shapes.title.text = "Generated Bar Chart"
+        
+        # Check if title placeholder exists
+        if slide.shapes.title is not None:
+            slide.shapes.title.text = "Generated Bar Chart"
+        else:
+            logger.warning("No title placeholder found for the bar chart slide.")
+        
         slide.shapes.add_picture(chart_path, Inches(1), Inches(1), width=Inches(8.5), height=Inches(4.5))
-
         progress_bar.progress(90)
 
     return prs
+
 
 # Generate content when a topic is provided
 if topic and selected_template_name:
