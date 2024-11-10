@@ -102,12 +102,13 @@ def create_presentation_from_template(content, topic, template_file, progress_ba
     """Creates a PowerPoint presentation from the selected template and adds content slides."""
     prs = Presentation(template_file)
 
-    # Remove slides from template except the first slide
-    for slide in prs.slides[1:]:
-        prs.slides._sldIdLst.remove(slide._element)
+    # Remove slides except the first slide (title slide)
+    slides_to_remove = prs.slides[1:]  # Exclude the title slide
+    for slide in slides_to_remove:
+        slide._element.getparent().remove(slide._element)
 
     # Title Slide
-    slide = prs.slides[0]
+    slide = prs.slides[0]  # First slide is the title slide
     title = slide.shapes.title or get_placeholder(slide, 0)
     if title:
         title.text = topic
@@ -121,7 +122,7 @@ def create_presentation_from_template(content, topic, template_file, progress_ba
         logger.warning("No subtitle placeholder found in the first slide of the template.")
 
     # Add content slides from generated content
-    content_slides = content.split("\n\n")  # Adjust split based on content formatting
+    content_slides = content.split("\n\n")  # Split the content into sections based on double newlines
 
     for i, slide_content in enumerate(content_slides[:6]):  # Limit to 6 slides
         slide_layout = prs.slide_layouts[1]  # Use a content layout
@@ -143,6 +144,7 @@ def create_presentation_from_template(content, topic, template_file, progress_ba
 
     progress_bar.progress(50)
     return prs
+
 
 
 
