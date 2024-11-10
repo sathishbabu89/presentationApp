@@ -69,7 +69,15 @@ def generate_presentation_content(topic, progress_bar):
         progress_bar.progress(30)  # Mark 30% as done (content generation starts)
         
         # Prepare the prompt for the LLM
-        prompt = f"Generate a detailed presentation for the following topic: {topic}. Include an introduction, key points, and a conclusion."
+        prompt = f"
+        Create a PowerPoint presentation on the topic of: {topic}. 
+        The presentation should include the following sections:
+        Introduction: Brief overview or background of the topic.
+        Main Points: Key ideas or arguments related to the topic.
+        Supporting Evidence or Examples: Data, case studies, or relevant details that support the main points.
+        Conclusion: A summary of the key takeaways or a call to action.
+        Feel free to adjust the content to make it relevant to the topic. 
+        Add visuals, charts, or graphs where appropriate to enhance understanding."
         
         # Invoke the LLM to generate content
         response = llm.invoke(prompt)
