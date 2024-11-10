@@ -99,17 +99,13 @@ def get_placeholder(slide, index):
 
 # Function to create PowerPoint presentation from selected template
 def create_presentation_from_template(content, topic, template_file, progress_bar):
-    """Creates a PowerPoint presentation from the selected template and adds content slides."""
+    """Creates a PowerPoint presentation from the selected template."""
     prs = Presentation(template_file)
-
-    # Remove slides except the first slide (title slide)
-    slides_to_remove = prs.slides[1:]  # Exclude the title slide
-    for slide in slides_to_remove:
-        slide._element.getparent().remove(slide._element)
-
+    
     # Title Slide
-    slide = prs.slides[0]  # First slide is the title slide
+    slide = prs.slides[0]
     title = slide.shapes.title or get_placeholder(slide, 0)
+    
     if title:
         title.text = topic
     else:
@@ -121,32 +117,24 @@ def create_presentation_from_template(content, topic, template_file, progress_ba
     else:
         logger.warning("No subtitle placeholder found in the first slide of the template.")
 
-    # Add content slides from generated content
-    content_slides = content.split("\n\n")  # Split the content into sections based on double newlines
+    # Content Slide
+    slide_layout = prs.slide_layouts[1]
+    slide = prs.slides.add_slide(slide_layout)
+    title = slide.shapes.title
+    body = get_placeholder(slide, 1)
 
-    for i, slide_content in enumerate(content_slides[:6]):  # Limit to 6 slides
-        slide_layout = prs.slide_layouts[1]  # Use a content layout
-        slide = prs.slides.add_slide(slide_layout)
-        
-        # Set slide title and content
-        title = slide.shapes.title
-        body = get_placeholder(slide, 1)
-        
-        if title:
-            title.text = f"{topic} - Slide {i+1}"
-        
-        if body and body.text_frame:
-            body.text_frame.clear()
-            p = body.text_frame.add_paragraph()
-            p.text = slide_content.strip()
-        else:
-            logger.warning("No content placeholder found in slide layout.")
+    if title:
+        title.text = f"Content: {topic}"
+    
+    if body and body.text_frame:
+        body.text_frame.clear()
+        p = body.text_frame.add_paragraph()
+        p.text = content
+    else:
+        logger.warning("No content placeholder found in the second slide of the template.")
 
     progress_bar.progress(50)
     return prs
-
-
-
 
 # Function to generate and add charts to the presentation
 def generate_charts_to_presentation(prs, progress_bar):
