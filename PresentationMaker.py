@@ -102,10 +102,9 @@ def create_presentation_from_template(content, topic, template_file, progress_ba
     """Creates a PowerPoint presentation from the selected template and adds content slides."""
     prs = Presentation(template_file)
 
-    # Clear out slides in template after the title slide if needed
-    while len(prs.slides) > 1:
-        r_id = prs.slides[-1].slide_id
-        prs.slides._sldIdLst.remove(prs.slides._element.find(f"./*[contains(@r:id, '{r_id}')]"))
+    # Remove slides from template except the first slide
+    for slide in prs.slides[1:]:
+        prs.slides._sldIdLst.remove(slide._element)
 
     # Title Slide
     slide = prs.slides[0]
@@ -144,6 +143,7 @@ def create_presentation_from_template(content, topic, template_file, progress_ba
 
     progress_bar.progress(50)
     return prs
+
 
 
 # Function to generate and add charts to the presentation
