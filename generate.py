@@ -91,7 +91,6 @@ def generate_presentation_content(topic, progress_bar):
         return "Error generating content."
 
 # Function to safely get a placeholder from a slide at a given index
-# Function to safely get a placeholder from a slide at a given index
 def get_placeholder(slide, index):
     """Safely get the placeholder at a specific index in the slide."""
     try:
