@@ -29,8 +29,9 @@ with st.sidebar:
     st.title("Create Your Presentation")
     topic = st.text_input("Enter the Topic of your Presentation:")
 
-    # Option to generate charts for the presentation (now a single button to start the generation)
-    generate_charts = st.checkbox("Include charts in the presentation")
+    # Option to generate charts for the presentation
+    generate_charts = st.checkbox("Generate Pie Chart for Content")
+    bar_chart = st.checkbox("Generate Bar Chart for Content")
 
     # Load templates and display them as options
     templates_folder = "templates/"
@@ -76,8 +77,7 @@ def generate_presentation_content(topic, progress_bar):
         Supporting Evidence or Examples: Data, case studies, or relevant details that support the main points.
         Conclusion: A summary of the key takeaways or a call to action.
         Feel free to adjust the content to make it relevant to the topic. 
-        Add visuals, charts, or graphs where appropriate to enhance understanding.
-        """
+        Add visuals, charts, or graphs where appropriate to enhance understanding."""
         
         # Invoke the LLM to generate content
         response = llm.invoke(prompt)
@@ -90,16 +90,26 @@ def generate_presentation_content(topic, progress_bar):
         logger.error(f"Error while generating content: {e}")
         return "Error generating content."
 
-# Function to safely access placeholders in the slide and avoid NoneType errors
+# Function to safely get a placeholder from a slide at a given index
 def get_placeholder(slide, index):
     """Safely get the placeholder at a specific index in the slide."""
     try:
+        # Attempt to access the placeholder using index-based access (which might raise a KeyError)
         return slide.placeholders[index]
-    except IndexError:
-        logger.warning(f"Placeholder index {index} not found in this slide.")
+    except KeyError as e:
+        # Catch KeyError, which happens if the placeholder index does not exist
+        logger.warning(f"KeyError: Placeholder index {index} not found in this slide. Error: {e}")
+        return None
+    except IndexError as e:
+        # Catch IndexError, which happens if the index is out of bounds
+        logger.warning(f"IndexError: Placeholder index {index} not found in this slide. Error: {e}")
+        return None
+    except Exception as e:
+        # Catch any other unforeseen errors
+        logger.error(f"Unexpected error accessing placeholder index {index}: {e}")
         return None
 
-# Function to create PowerPoint presentation using selected template
+# Function to create PowerPoint presentation from selected template
 def create_presentation_from_template(content, topic, template_file, progress_bar):
     """Creates a PowerPoint presentation from the selected template."""
     prs = Presentation(template_file)
@@ -166,7 +176,7 @@ def generate_charts_to_presentation(prs, progress_bar):
         progress_bar.progress(75)
 
     # Generate Bar Chart if selected by the user
-    if generate_charts:
+    if bar_chart:
         fig = px.bar(
             x=['Category A', 'Category B', 'Category C', 'Category D'],
             y=[10, 20, 30, 40],
@@ -188,41 +198,38 @@ def generate_charts_to_presentation(prs, progress_bar):
 
 # Generate content when a topic is provided
 if topic and selected_template_name:
-    # Add a "Generate" button to trigger presentation creation
-    generate_button = st.button("Generate Presentation")
+    # Show progress bar for content generation
+    progress_bar = st.progress(0)
+    
+    st.subheader(f"Generated Content for '{topic}'")
+    with st.spinner("Generating content for the presentation..."):
+        content = generate_presentation_content(topic, progress_bar)
+        st.markdown(content)
 
-    if generate_button:
-        # Show progress bar for content generation
-        progress_bar = st.progress(0)
-        
-        st.subheader(f"Generated Content for '{topic}'")
-        with st.spinner("Generating content for the presentation..."):
-            content = generate_presentation_content(topic, progress_bar)
-            st.markdown(content)
+    # Load the selected template file
+    template_file_path = os.path.join(templates_folder, f"{selected_template_name}.pptx")
+    
+    # Create a PowerPoint presentation from the selected template
+    prs = create_presentation_from_template(content, topic, template_file_path, progress_bar)
 
-        # Load the selected template file
-        template_file_path = os.path.join(templates_folder, f"{selected_template_name}.pptx")
-        
-        # Create a PowerPoint presentation from the selected template
-        prs = create_presentation_from_template(content, topic, template_file_path, progress_bar)
+    # Generate and add charts if selected by the user
+    prs = generate_charts_to_presentation(prs, progress_bar)
 
-        # Generate and add charts if selected by the user
-        prs = generate_charts_to_presentation(prs, progress_bar)
+    # Save the presentation and create a download link
+    output_file = BytesIO()
+    prs.save(output_file)
+    output_file.seek(0)
 
-        # Save the presentation and create a download link
-        output_file = BytesIO()
-        prs.save(output_file)
-        output_file.seek(0)
+    # Mark 100% completion after everything is done
+    progress_bar.progress(100)
 
-        # Mark 100% completion after everything is done
-        progress_bar.progress(100)
+    # Provide a download button for the generated PowerPoint file
+    st.download_button(
+        "Download PowerPoint Presentation",
+        data=output_file,
+        file_name="generated_presentation.pptx",
+        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    )
 
-        # Provide a download button for the generated PowerPoint file
-        st.download_button(
-            "Download PowerPoint Presentation",
-            data=output_file,
-            file_name="generated_presentation.pptx",
-            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
-        )
 else:
     st.info("Please enter a topic and select a template to generate the presentation.")
