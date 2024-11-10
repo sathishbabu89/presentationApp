@@ -138,6 +138,15 @@ def create_presentation_from_template(content, topic, template_file, progress_ba
 
 # Function to generate and add charts to the presentation
 def generate_charts_to_presentation(prs, progress_bar):
+
+    chart_slide_layout_index = 5  # The desired layout index for the chart slides
+    
+    # Check if the specified slide layout index is available
+    if chart_slide_layout_index >= len(prs.slide_layouts):
+        logger.warning(f"Slide layout index {chart_slide_layout_index} is out of range. Using the default layout (0) instead.")
+        chart_slide_layout_index = 0  # Fallback to a default layout if the desired layout is unavailable
+
+    
     """Generates charts and adds them to the presentation."""
     if generate_charts:
         fig, ax = plt.subplots(figsize=(5, 3))
@@ -150,7 +159,7 @@ def generate_charts_to_presentation(prs, progress_bar):
         plt.savefig(chart_path)
         plt.close()
 
-        slide_layout = prs.slide_layouts[5]
+        slide_layout = prs.slide_layouts[chart_slide_layout_index]
         slide = prs.slides.add_slide(slide_layout)
         slide.shapes.title.text = "Generated Pie Chart"
         slide.shapes.add_picture(chart_path, Inches(1), Inches(1), width=Inches(8.5), height=Inches(4.5))
@@ -166,7 +175,7 @@ def generate_charts_to_presentation(prs, progress_bar):
         chart_path = "bar_chart.html"
         fig.write_html(chart_path)
 
-        slide_layout = prs.slide_layouts[5]
+        slide_layout = prs.slide_layouts[chart_slide_layout_index]
         slide = prs.slides.add_slide(slide_layout)
         slide.shapes.title.text = "Generated Bar Chart"
         slide.shapes.add_picture(chart_path, Inches(1), Inches(1), width=Inches(8.5), height=Inches(4.5))
