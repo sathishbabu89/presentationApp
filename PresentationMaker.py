@@ -90,6 +90,15 @@ def generate_presentation_content(topic, progress_bar):
         logger.error(f"Error while generating content: {e}")
         return "Error generating content."
 
+# Function to safely access placeholders in the slide and avoid NoneType errors
+def get_placeholder(slide, index):
+    """Safely get the placeholder at a specific index in the slide."""
+    try:
+        return slide.placeholders[index]
+    except IndexError:
+        logger.warning(f"Placeholder index {index} not found in this slide.")
+        return None
+
 # Function to create PowerPoint presentation using selected template
 def create_presentation_from_template(content, topic, template_file, progress_bar):
     """Creates a PowerPoint presentation from the selected template."""
@@ -101,7 +110,7 @@ def create_presentation_from_template(content, topic, template_file, progress_ba
     title = slide.shapes.title
     
     # Safely access subtitle placeholder (index 1)
-    subtitle = slide.placeholders[1] if len(slide.placeholders) > 1 else None  # Ensure placeholder exists
+    subtitle = get_placeholder(slide, 1)  # Ensure placeholder exists
     title.text = topic
     
     if subtitle:  # Check if the subtitle placeholder exists
@@ -115,7 +124,7 @@ def create_presentation_from_template(content, topic, template_file, progress_ba
 
     # Safely access the title and content placeholders (index 1)
     title = slide.shapes.title
-    body = slide.shapes.placeholders[1] if len(slide.placeholders) > 1 else None  # Ensure placeholder exists
+    body = get_placeholder(slide, 1)  # Ensure placeholder exists
     
     title.text = f"Content: {topic}"
     
