@@ -91,18 +91,16 @@ def generate_presentation_content(topic, progress_bar):
         return "Error generating content."
 
 # Function to safely get a placeholder from a slide at a given index
+# Function to safely get a placeholder from a slide at a given index
 def get_placeholder(slide, index):
     """Safely get the placeholder at a specific index in the slide."""
     try:
         # Attempt to access the placeholder using index-based access (which might raise a KeyError)
-        return slide.placeholders[index]
-    except KeyError as e:
-        # Catch KeyError, which happens if the placeholder index does not exist
-        logger.warning(f"KeyError: Placeholder index {index} not found in this slide. Error: {e}")
-        return None
-    except IndexError as e:
-        # Catch IndexError, which happens if the index is out of bounds
-        logger.warning(f"IndexError: Placeholder index {index} not found in this slide. Error: {e}")
+        placeholder = slide.placeholders[index]
+        return placeholder
+    except (KeyError, IndexError) as e:
+        # Catch KeyError or IndexError, which happens if the placeholder index does not exist
+        logger.warning(f"Error: Placeholder index {index} not found in this slide. Error: {e}")
         return None
     except Exception as e:
         # Catch any other unforeseen errors
@@ -140,9 +138,12 @@ def create_presentation_from_template(content, topic, template_file, progress_ba
     
     if body:  # Check if the content placeholder exists
         tf = body.text_frame
-        tf.clear()  # Clear any existing content
-        p = tf.add_paragraph()
-        p.text = content
+        if tf:  # Make sure the text frame exists
+            tf.clear()  # Clear any existing content
+            p = tf.add_paragraph()
+            p.text = content
+        else:
+            logger.warning(f"No text frame found in content placeholder in slide 2 of {template_file}")
     else:
         logger.warning(f"No content placeholder found in the second slide of the template {template_file}")
 
@@ -150,6 +151,8 @@ def create_presentation_from_template(content, topic, template_file, progress_ba
     progress_bar.progress(50)
 
     return prs
+
+
 
 # Function to generate and add charts to the presentation
 def generate_charts_to_presentation(prs, progress_bar):
