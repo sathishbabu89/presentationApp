@@ -23,7 +23,7 @@ with st.sidebar:
 
 # Load the LLM for Presentation Generation
 llm = HuggingFaceEndpoint(
-    repo_id="mistralai/Mistral-Nemo-Instruct-2407",
+    repo_id="meta-llama/Meta-Llama-3-8B-Instruct",
     max_new_tokens=512,
     top_k=10,
     top_p=0.95,
@@ -66,26 +66,28 @@ def create_presentation(content, topic):
 
     return prs
 
-# Generate content and presentation when a topic is provided
-if topic:
-    with st.spinner("Generating presentation content..."):
-        content = generate_presentation_content(topic, presentation_type)
-        st.markdown(content)
+# Generate button
+if st.button("Generate"):
+    if topic:
+        with st.spinner("Generating presentation content..."):
+            # Generate presentation content
+            content = generate_presentation_content(topic, presentation_type)
+            st.markdown(content)
 
-    # Create a PowerPoint presentation from the generated content
-    prs = create_presentation(content, topic)
+            # Create a PowerPoint presentation from the generated content
+            prs = create_presentation(content, topic)
 
-    # Save presentation to BytesIO for download
-    output_file = BytesIO()
-    prs.save(output_file)
-    output_file.seek(0)
+            # Save presentation to BytesIO for download
+            output_file = BytesIO()
+            prs.save(output_file)
+            output_file.seek(0)
 
-    # Provide download button
-    st.download_button(
-        "Download Presentation",
-        data=output_file,
-        file_name="generated_presentation.pptx",
-        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
-    )
-else:
-    st.info("Please enter a topic to generate the presentation.")
+            # Provide download button
+            st.download_button(
+                "Download Presentation",
+                data=output_file,
+                file_name="generated_presentation.pptx",
+                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            )
+    else:
+        st.warning("Please enter a topic to generate the presentation.")
