@@ -2,6 +2,7 @@ import streamlit as st
 from io import BytesIO
 import logging
 import json
+import re
 from pptx import Presentation
 from langchain.llms import HuggingFaceEndpoint
 
@@ -39,32 +40,37 @@ def generate_presentation_content(topic, presentation_type):
     """Generates structured presentation content as a list of slides with title and content."""
     num_of_slides = 3 if presentation_type == "Basic" else 5
     try:
-        # Prompt to request structured JSON response
+        # Update prompt to strictly request JSON format
         prompt = f"""
         Create a {num_of_slides}-slide PowerPoint presentation on the topic '{topic}'.
         Each slide should have a clear title and corresponding content.
-        Respond in JSON format as a list of slides, with each slide represented as:
+        Respond only in JSON format with the following structure:
         [
             {{"title": "Slide 1 Title", "content": "Slide 1 content."}},
             {{"title": "Slide 2 Title", "content": "Slide 2 content."}},
             ...
         ]
-        Only include content directly relevant to the topic.
+        Only include content directly relevant to the topic without any additional text.
         """
 
         response = llm.invoke(prompt)
 
         # Attempt to parse the response as JSON
-        slides = json.loads(response)
+        try:
+            slides = json.loads(response)
+        except json.JSONDecodeError:
+            # Clean response to resemble JSON structure if extra text is present
+            cleaned_response = re.sub(r'^[^{\[]*|[^}\]]*$', '', response).strip()
+            slides = json.loads(cleaned_response)
 
-        # Verify that each item is structured correctly as a dictionary with "title" and "content"
+        # Verify correct structure
         if isinstance(slides, list) and all(isinstance(slide, dict) and "title" in slide and "content" in slide for slide in slides):
             return slides
         else:
             logger.error("Generated content is not in the expected format.")
             return []
     except json.JSONDecodeError as e:
-        logger.error(f"Error decoding JSON response: {e}")
+        logger.error(f"Error decoding JSON response after cleaning: {e}")
         return []
     except Exception as e:
         logger.error(f"Error generating content: {e}")
