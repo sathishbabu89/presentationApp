@@ -8,3 +8,4 @@ Pillow
 huggingface_hub
 requests
 langchain_community
+json
