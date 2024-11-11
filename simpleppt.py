@@ -1,6 +1,7 @@
 import streamlit as st
 from io import BytesIO
 import logging
+import json
 from pptx import Presentation
 from langchain.llms import HuggingFaceEndpoint
 
@@ -35,27 +36,36 @@ llm = HuggingFaceEndpoint(
 
 # Function to generate structured presentation content
 def generate_presentation_content(topic, presentation_type):
-    """Generates a structured presentation content as a list of slides with title and content."""
+    """Generates structured presentation content as a list of slides with title and content."""
     num_of_slides = 3 if presentation_type == "Basic" else 5
     try:
-        # Prompt to get structured content with titles and corresponding slide content
+        # Prompt to request structured JSON response
         prompt = f"""
-        Create a structured {num_of_slides}-slide PowerPoint presentation on the topic '{topic}'.
-        Each slide should have a clear title and its corresponding content. 
-        Format the response as a list of slides, where each slide contains a title and content like this:
+        Create a {num_of_slides}-slide PowerPoint presentation on the topic '{topic}'.
+        Each slide should have a clear title and corresponding content.
+        Respond in JSON format as a list of slides, with each slide represented as:
         [
-            {"title": "Slide 1 Title", "content": "Slide 1 content."},
-            {"title": "Slide 2 Title", "content": "Slide 2 content."},
+            {{"title": "Slide 1 Title", "content": "Slide 1 content."}},
+            {{"title": "Slide 2 Title", "content": "Slide 2 content."}},
             ...
         ]
-        Only generate content relevant to the topic without slide numbers or extraneous formatting.
+        Only include content directly relevant to the topic.
         """
-        
+
         response = llm.invoke(prompt)
 
-        # Convert response to a structured list (assumes response is in JSON or parsable format)
-        slides = eval(response)  # Use safe parsing in production, such as `json.loads`
-        return slides
+        # Attempt to parse the response as JSON
+        slides = json.loads(response)
+
+        # Verify that each item is structured correctly as a dictionary with "title" and "content"
+        if isinstance(slides, list) and all(isinstance(slide, dict) and "title" in slide and "content" in slide for slide in slides):
+            return slides
+        else:
+            logger.error("Generated content is not in the expected format.")
+            return []
+    except json.JSONDecodeError as e:
+        logger.error(f"Error decoding JSON response: {e}")
+        return []
     except Exception as e:
         logger.error(f"Error generating content: {e}")
         return []
